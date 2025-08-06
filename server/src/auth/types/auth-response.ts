@@ -2,12 +2,12 @@ import { File, User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class AuthResponse implements User {
-  id: number;
+  id: string;
   name: string;
   email: string;
 
   @Exclude()
-  avatarId: number;
+  avatarId: string;
 
   avatar: File | null;
   confirmedAt: Date | null;

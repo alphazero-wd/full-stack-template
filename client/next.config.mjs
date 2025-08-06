@@ -6,10 +6,15 @@ const nextConfig = {
   reactStrictMode: false,
   images: {
     remotePatterns: [
+      // {
+      //   hostname: process.env.NEXT_PUBLIC_IMAGE_HOST,
+      //   pathname: "/**",
+      //   protocol: "https",
+      // },
       {
-        hostname: process.env.NEXT_PUBLIC_IMAGE_HOST,
-        pathname: "/**",
-        protocol: "https",
+        hostname: "localhost",
+        pathname: "/files/**",
+        protocol: "http",
       },
     ],
   },

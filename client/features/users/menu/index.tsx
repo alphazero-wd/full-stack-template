@@ -13,7 +13,8 @@ import { LayoutGrid, LogOut, SettingsIcon } from "lucide-react";
 import { useLogout } from "@/features/auth/logout";
 import Link from "next/link";
 import { ProfileAvatar } from "../avatar";
-import { User } from "../types";
+import { User } from "@/features/users/types";
+import { API_URL } from "@/constants";
 
 interface UserMenuProps {
   user: User;
@@ -24,7 +25,14 @@ export const UserMenu = ({ user }: UserMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
-        <ProfileAvatar name={user.name} avatar={user.avatar?.url} />
+        <ProfileAvatar
+          name={user.name}
+          avatar={
+            !user.avatar?.isLocal
+              ? user.avatar?.url
+              : `${API_URL}/files/${user.avatar?.id}`
+          }
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuGroup>

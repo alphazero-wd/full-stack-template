@@ -4,8 +4,8 @@ import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { v4 as uuidv4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
-import { UploadFileDto } from '../storage/dto';
-import { StorageService } from '../storage/storage.service';
+import { UploadFileDto } from '../files/dto';
+import { LocalFilesService } from '../files/local-files.service';
 import { userFixture } from '../users/test-utils';
 import { UsersService } from '../users/users.service';
 import { SettingsService } from './settings.service';
@@ -19,7 +19,7 @@ describe('SettingsService', () => {
   let settingsService: SettingsService;
   let usersService: UsersService;
   let mailService: MailService;
-  let storageService: StorageService;
+  let filesService: LocalFilesService;
   let user: User;
 
   beforeEach(async () => {
@@ -39,7 +39,7 @@ describe('SettingsService', () => {
           useValue: { sendChangeEmailConfirmation: jest.fn() },
         },
         {
-          provide: StorageService,
+          provide: LocalFilesService,
           useValue: { upload: jest.fn(), remove: jest.fn() },
         },
       ],
@@ -48,7 +48,7 @@ describe('SettingsService', () => {
     settingsService = module.get<SettingsService>(SettingsService);
     usersService = module.get<UsersService>(UsersService);
     mailService = module.get<MailService>(MailService);
-    storageService = module.get<StorageService>(StorageService);
+    filesService = module.get<LocalFilesService>(LocalFilesService);
     user = userFixture();
   });
 
@@ -73,33 +73,35 @@ describe('SettingsService', () => {
 
   describe('updateAvatar', () => {
     it('should update the user avatar', async () => {
-      const oldAvatarId = 1;
-      const newAvatarId = 2;
-      const oldAvatarKey = 'old-avatar-key';
-      const newAvatarKey = 'new-avatar-key';
+      const oldAvatarId = '1';
+      const newAvatarId = '2';
       const user = userFixture({
         avatarId: oldAvatarId,
-        avatar: { id: oldAvatarId, key: oldAvatarKey, url: '' },
+        avatar: {
+          id: oldAvatarId,
+          url: null,
+          key: null,
+          mimetype: 'image/jpeg',
+          filename: 'foo.jpg',
+          isLocal: true,
+          path: '/path/to/foo.jpg',
+        },
       });
       const uploadAvatarDto: UploadFileDto = {
         buffer: Buffer.from('avatar'),
         filename: 'avatar.png',
+        mimetype: 'image/png',
+        path: '/path/to/avatar.png',
       };
 
-      (storageService.upload as jest.Mock).mockResolvedValue([
-        {
-          id: newAvatarId,
-          key: newAvatarKey,
-          url: '',
-        },
-      ]);
-      (storageService.remove as jest.Mock).mockResolvedValue(null);
+      (filesService.upload as jest.Mock).mockResolvedValue(['2']);
+      (filesService.remove as jest.Mock).mockResolvedValue(null);
       (usersService.update as jest.Mock).mockResolvedValue(null);
 
       await settingsService.updateAvatar(user, uploadAvatarDto);
 
-      expect(storageService.remove).toHaveBeenCalledWith([oldAvatarKey]);
-      expect(storageService.upload).toHaveBeenCalledWith([uploadAvatarDto]);
+      expect(filesService.remove).toHaveBeenCalledWith([oldAvatarId]);
+      expect(filesService.upload).toHaveBeenCalledWith([uploadAvatarDto]);
       expect(usersService.update).toHaveBeenCalledWith(user.id, {
         avatarId: newAvatarId,
       });
@@ -114,17 +116,24 @@ describe('SettingsService', () => {
     });
 
     it('should delete the user avatar', async () => {
-      (storageService.remove as jest.Mock).mockResolvedValue(null);
-      const avatarKey = 'avatar-key';
+      (filesService.remove as jest.Mock).mockResolvedValue(null);
 
       await settingsService.deleteAvatar(
         userFixture({
-          avatar: { key: avatarKey, id: 1, url: '' },
-          avatarId: 1,
+          avatar: {
+            key: 'key',
+            id: '1',
+            url: '',
+            path: '',
+            isLocal: false,
+            filename: '',
+            mimetype: '',
+          },
+          avatarId: '1',
         }),
       );
 
-      expect(storageService.remove).toHaveBeenCalledWith([avatarKey]);
+      expect(filesService.remove).toHaveBeenCalledWith(['1']);
     });
   });
 

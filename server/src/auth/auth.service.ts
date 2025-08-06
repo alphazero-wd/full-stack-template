@@ -45,7 +45,7 @@ export class AuthService {
     );
   }
 
-  async confirmEmail(id: number, token: string) {
+  async confirmEmail(id: string, token: string) {
     const confirmToken = `${CONFIRM_EMAIL_KEY_PREFIX}:${token}`;
     const userId = await this.validateToken(confirmToken);
     if (id !== userId) throw new ForbiddenException();
@@ -74,7 +74,7 @@ export class AuthService {
   }
 
   private async validateToken(token: string) {
-    const userId = await this.cacheService.get<number>(token);
+    const userId = await this.cacheService.get<string>(token);
     if (!userId) throw new BadRequestException('Invalid token provided');
     return userId;
   }

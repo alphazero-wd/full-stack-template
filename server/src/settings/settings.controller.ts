@@ -1,27 +1,22 @@
-import { Request } from 'express';
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
-  FileTypeValidator,
-  Req,
   HttpCode,
   HttpStatus,
-  MaxFileSizeValidator,
-  ParseFilePipe,
   Patch,
   Post,
+  Req,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { User } from '@prisma/client';
+import { Request } from 'express';
 import { CookieAuthGuard, EmailConfirmAuthGuard } from '../auth/guards';
-import {
-  ALLOWED_IMAGE_MIME_TYPES,
-  MAX_AVATAR_FILE_SIZE,
-} from '../common/constants';
+import { LocalFilesInterceptor } from '../files/interceptors';
 import { CurrentUser } from '../users/decorators';
 import { UserWithAvatar } from '../users/types';
 import {
@@ -90,20 +85,33 @@ export class SettingsController {
   @UseGuards(EmailConfirmAuthGuard())
   @HttpCode(HttpStatus.NO_CONTENT)
   @Patch('profile/avatar')
-  @UseInterceptors(FileInterceptor('avatar'))
+  @UseInterceptors(
+    LocalFilesInterceptor({
+      maxFilesCount: 1,
+      fieldName: 'avatar',
+      path: '/avatars',
+      fileFilter: (_request, file, callback) => {
+        if (!file.mimetype.includes('image')) {
+          return callback(
+            new BadRequestException('Provide a valid image'),
+            false,
+          );
+        }
+        callback(null, true);
+      },
+      limits: {
+        fileSize: Math.pow(1024, 2) * 2, // 2MB
+      },
+    }),
+  )
   async uploadAvatar(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: MAX_AVATAR_FILE_SIZE }),
-          new FileTypeValidator({ fileType: ALLOWED_IMAGE_MIME_TYPES }),
-        ],
-      }),
-    )
-    avatar: Express.Multer.File,
+    @UploadedFiles()
+    [avatar]: Express.Multer.File[],
     @CurrentUser() user: UserWithAvatar,
   ) {
     await this.settingsService.updateAvatar(user, {
+      mimetype: avatar.mimetype,
+      path: avatar.path,
       filename: avatar.filename,
       buffer: avatar.buffer,
     });

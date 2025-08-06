@@ -29,6 +29,10 @@ export const useEmailSettings = (email: string) => {
   }, [email]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (values.email === email) {
+      form.setError("email", { message: "No changes made to your email" });
+      return;
+    }
     setLoading(true);
     await timeout();
     await sendConfirmationEmail(values.email);

@@ -10,6 +10,7 @@ export interface User {
 export interface Avatar {
   id: number;
   key: string;
+  isLocal: boolean;
   url: string;
 }
 export interface Profile extends Omit<User, "email"> {}

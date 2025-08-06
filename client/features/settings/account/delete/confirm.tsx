@@ -29,7 +29,7 @@ export const ConfirmDeleteDialog = () => {
           <DialogTitle>Delete account confirmation</DialogTitle>
           <DialogDescription>
             This action cannot be undone. This will permanently delete your
-            account and your associated data on Snapcode.
+            account and your associated data on My App.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

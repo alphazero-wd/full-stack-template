@@ -36,14 +36,14 @@ export class UsersService {
     return user;
   }
 
-  async confirmEmail(id: number) {
+  async confirmEmail(id: string) {
     await this.prisma.user.update({
       where: { id },
       data: { confirmedAt: new Date() },
     });
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     try {
       await this.prisma.user.delete({ where: { id } });
     } catch (error) {
@@ -55,7 +55,7 @@ export class UsersService {
     }
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     try {
       const updatedUser = await this.prisma.user.update({
         where: { id },
@@ -74,7 +74,7 @@ export class UsersService {
     }
   }
 
-  async findById(id: number) {
+  async findById(id: string) {
     try {
       const user = await this.prisma.user.findUniqueOrThrow({
         where: { id },

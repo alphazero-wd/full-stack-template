@@ -36,6 +36,10 @@ export const useBasicInfoForm = ({ name }: BasicInfoFormParams) => {
   }, [name]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (values.name === name) {
+      form.setError("name", { message: "No changes made to your name" });
+      return;
+    }
     setLoading(true);
     await timeout();
     await update(values);

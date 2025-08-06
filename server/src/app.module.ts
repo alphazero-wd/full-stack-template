@@ -9,7 +9,7 @@ import Joi from '@hapi/joi';
 import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule } from '@nestjs/cache-manager';
 import { SettingsModule } from './settings/settings.module';
-import { StorageModule } from './storage/storage.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -24,9 +24,10 @@ import { StorageModule } from './storage/storage.module';
         CORS_ORIGIN: Joi.string().required(),
         MAIL_TRANSPORT: Joi.string().required(),
         CACHE_TTL: Joi.string().required(),
-        AWS_REGION: Joi.string().required(),
-        AWS_BUCKET_NAME: Joi.string().required(),
-        AWS_OBJECT_DEST: Joi.string().required(),
+        AWS_REGION: Joi.string().optional(),
+        AWS_BUCKET_NAME: Joi.string().optional(),
+        AWS_OBJECT_DEST: Joi.string().optional(),
+        UPLOADED_DEST: Joi.string().optional(),
       }),
     }),
     CacheModule.registerAsync({
@@ -43,7 +44,7 @@ import { StorageModule } from './storage/storage.module';
     UsersModule,
     MailModule,
     SettingsModule,
-    StorageModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

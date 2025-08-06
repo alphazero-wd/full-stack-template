@@ -3,8 +3,8 @@ import { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { v4 } from 'uuid';
 import { MailService } from '../mail/mail.service';
-import { UploadFileDto } from '../storage/dto';
-import { StorageService } from '../storage/storage.service';
+import { UploadFileDto } from '../files/dto';
+import { LocalFilesService } from '../files/local-files.service';
 import { UserWithAvatar } from '../users/types';
 import { UsersService } from '../users/users.service';
 
@@ -13,10 +13,10 @@ export class SettingsService {
   constructor(
     private usersService: UsersService,
     private mailService: MailService,
-    private storageService: StorageService,
+    private filesService: LocalFilesService,
   ) {}
 
-  async updateName(userId: number, newName: string) {
+  async updateName(userId: string, newName: string) {
     const updatedUser = await this.usersService.update(userId, {
       name: newName,
     });
@@ -24,15 +24,15 @@ export class SettingsService {
   }
 
   async updateAvatar(user: UserWithAvatar, uploadAvatarDto: UploadFileDto) {
-    if (user.avatarId) await this.storageService.remove([user.avatar.key]);
-    const [{ id }] = await this.storageService.upload([uploadAvatarDto]);
+    if (user.avatarId) await this.filesService.remove([user.avatar.id]);
+    const [id] = await this.filesService.upload([uploadAvatarDto]);
     await this.usersService.update(user.id, { avatarId: id });
   }
 
   async deleteAvatar(user: UserWithAvatar) {
     if (!user.avatar)
       throw new BadRequestException("You haven't uploaded an avatar");
-    await this.storageService.remove([user.avatar.key]);
+    await this.filesService.remove([user.avatar.id]);
   }
 
   async updatePassword(user: User, password: string, newPassword: string) {

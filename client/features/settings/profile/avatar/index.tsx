@@ -8,7 +8,7 @@ import { useDropzone } from "react-dropzone";
 import { DeleteAvatarDialog } from "./delete-dialog";
 import { useUploadImage } from "./use-upload";
 import { CircleAlertIcon } from "lucide-react";
-import { MAX_AVATAR_FILE_SIZE } from "@/constants";
+import { API_URL, MAX_AVATAR_FILE_SIZE } from "@/constants";
 
 interface ProfileAvatarSettingsProps {
   name: string;
@@ -66,7 +66,10 @@ export const ProfileAvatarSettings = ({
         <ProfileAvatar
           isPreview={!!newImage}
           name={name}
-          avatar={newImage?.preview || avatar?.url}
+          avatar={
+            newImage?.preview ||
+            (!avatar?.isLocal ? avatar?.url : `${API_URL}/files/${avatar?.id}`)
+          }
           size="lg"
         />
       </div>
@@ -96,7 +99,7 @@ export const ProfileAvatarSettings = ({
           avatar && <DeleteAvatarDialog />
         )}
         <Button
-          onClick={async () => await uploadImage()}
+          onClick={uploadImage}
           disabled={loading || !newImage}
           className="w-fit gap-x-2"
         >

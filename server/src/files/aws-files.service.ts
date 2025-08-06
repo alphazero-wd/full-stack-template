@@ -14,9 +14,10 @@ import {
 } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { v4 } from 'uuid';
+import { FilesService } from './files.service';
 
 @Injectable()
-export class StorageService {
+export class AWSFilesService implements FilesService {
   private s3Client: S3Client;
   constructor(
     private prisma: PrismaService,
@@ -31,12 +32,15 @@ export class StorageService {
     try {
       const uploadResults = await this.uploadToS3(uploadFilesDto);
       const files = await this.prisma.file.createManyAndReturn({
-        data: uploadResults.map(({ Key, Location }) => ({
+        select: { id: true },
+        data: uploadResults.map(({ Key, Location }, index) => ({
           key: Key,
           url: Location,
+          isLocal: false,
+          ...uploadFilesDto[index],
         })),
       });
-      return files;
+      return files.map((file) => file.id);
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
@@ -61,19 +65,35 @@ export class StorageService {
     return uploadResults;
   }
 
-  async remove(keys: string[]) {
-    try {
-      const { count } = await this.prisma.file.deleteMany({
-        where: { key: { in: keys } },
+  async findOne(id: string) {
+    const file = await this.prisma.file.findUnique({
+      where: { id },
+    });
+    if (!file)
+      throw new NotFoundException({
+        success: false,
+        message: 'Cannot find file with the given `id`',
       });
-      if (count !== keys.length)
+    return file;
+  }
+
+  async remove(ids: string[]) {
+    try {
+      const fileKeys = await this.prisma.file.findMany({
+        where: { id: { in: ids }, isLocal: false },
+        select: { key: true },
+      });
+      if (fileKeys.length !== ids.length)
         throw new BadRequestException(
           'Cannot delete files as some of which are not found',
         );
+      await this.prisma.file.deleteMany({
+        where: { key: { in: fileKeys.map((k) => k.key) }, isLocal: false },
+      });
       const command = new DeleteObjectsCommand({
         Bucket: this.configService.get('AWS_BUCKET_NAME'),
         Delete: {
-          Objects: keys.map((key) => ({
+          Objects: fileKeys.map(({ key }) => ({
             Key: key,
           })),
         },

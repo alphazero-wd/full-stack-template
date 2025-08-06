@@ -1,7 +1,6 @@
-version: '3'
 services:
   postgres:
-    container_name: postgres
+    container_name: db
     image: postgres:alpine
     ports:
       - '5432:5432'
@@ -13,7 +12,14 @@ services:
       - POSTGRES_DB=nestjs-auth
 
   redis:
-    container_name: redis
+    container_name: cache
     image: redis:alpine
     ports:
       - 6379:6379
+
+  mail:
+    container_name: mail
+    image: jijiechen/papercut:latest
+    ports:
+      - 25:25
+      - 37408:37408

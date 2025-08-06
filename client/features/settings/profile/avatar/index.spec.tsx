@@ -15,6 +15,7 @@ const VALID_AVATAR: Readonly<Avatar> = {
   id: 1,
   key: "test-key",
   url: CURRENT_AVATAR_URL,
+  isLocal: false,
 };
 
 beforeAll(() => server.listen());

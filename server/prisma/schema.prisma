@@ -14,7 +14,7 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            String    @id @default(uuid())
   name          String    @db.VarChar(30)
   email         String    @unique
   password      String
@@ -23,13 +23,102 @@ model User {
   oldEmailToken String?
   newEmailToken String?
   newEmail      String?   @unique
-  avatarId      Int?      @unique
+  avatarId      String?   @unique
   avatar        File?     @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+
+  projects Project[]
 }
 
 model File {
-  id   Int    @id @default(autoincrement())
-  url  String
-  key  String @unique
+  id       String  @id @default(uuid())
+  isLocal  Boolean
+  url      String?
+  key      String? @unique
+  filename String
+  path     String
+  mimetype String
+
   user User?
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  webhookRequests WebhookRequest[]
+}
+
+enum WebhookRequestStatus {
+  Received
+  Forwarded
+  Replayed
+  Failed
+}
+
+enum RequestMethod {
+  GET
+  POST
+  PUT
+  PATCH
+  DELETE
+  HEAD
+  CONNECT
+  OPTION
+  TRACE
+}
+
+model WebhookRequest {
+  id          String               @id @default(uuid())
+  projectId   String
+  sourceUrl   String               @db.VarChar(255)
+  headers     Json                 @db.JsonB
+  method      RequestMethod
+  queryParams Json                 @db.JsonB
+  bodyRaw     Bytes                @db.ByteA
+  bodyParsed  Json?                @db.JsonB
+  contentType String               @db.VarChar(30)
+  sourceIP    String               @db.VarChar(100)
+  userAgent   String               @db.VarChar(255)
+  receivedAt  DateTime
+  isVerified  Boolean
+  status      WebhookRequestStatus
+  statusCode  Int?                 @db.SmallInt
+  body        String?              @db.Text
+
+  project  Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  replays  Replay[]
+  dlqEntry DLQEntry[]
+}
+
+model Replay {
+  id               String   @id @default(uuid())
+  webhookRequestId String
+  targetUrl        String   @db.VarChar(200)
+  headers          Json     @db.JsonB
+  body             Json     @db.JsonB
+  statusCode       Int      @db.SmallInt
+  responseBody     String   @db.Text
+  success          Boolean
+  attemptedAt      DateTime
+  latencyMs        Int
+
+  webhookRequest WebhookRequest @relation(fields: [webhookRequestId], references: [id], onDelete: Restrict)
+}
+
+model DLQEntry {
+  id               String   @id @default(uuid())
+  targetUrl        String
+  webhookRequestId String
+  failureReason    String   @db.VarChar(100)
+  lastAttemptedAt  DateTime
+  attempts         Int
+  lastStatusCode   Int
+  lastResponseBody String?
+
+  webhookRequest WebhookRequest @relation(fields: [webhookRequestId], references: [id], onDelete: Restrict)
 }

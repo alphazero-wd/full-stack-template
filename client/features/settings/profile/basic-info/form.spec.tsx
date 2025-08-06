@@ -53,6 +53,15 @@ describe("when provided name is invalid", () => {
     const nameErrorMessage = await screen.findByText(/name is too long/i);
     expect(nameErrorMessage).toBeInTheDocument();
   });
+  it("should show an error if name hasn't changed", async () => {
+    render(<BasicInfoForm name={VALID_NAME} />);
+    const updateNameButton = screen.getByRole("button", { name: /update/i });
+    await userEvent.click(updateNameButton);
+    const nameErrorMessage = await screen.findByText(
+      /no changes made to your name/i
+    );
+    expect(nameErrorMessage).toBeInTheDocument();
+  });
 });
 
 describe("validation is successful", () => {

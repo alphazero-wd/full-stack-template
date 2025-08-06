@@ -5,7 +5,7 @@ export const userFixture = (
   attrs?: Partial<UserWithAvatar>,
 ): UserWithAvatar => {
   return {
-    id: 1,
+    id: '1',
     email: faker.internet.email(),
     avatarId: null,
     avatar: null,

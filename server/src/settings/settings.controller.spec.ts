@@ -10,6 +10,7 @@ import {
 import { SettingsController } from './settings.controller';
 import { SettingsService } from './settings.service';
 import { Request } from 'express';
+import { ConfigService } from '@nestjs/config';
 
 describe('SettingsController', () => {
   let settingsController: SettingsController;
@@ -20,6 +21,7 @@ describe('SettingsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SettingsController],
       providers: [
+        ConfigService,
         {
           provide: SettingsService,
           useValue: {
@@ -138,15 +140,23 @@ describe('SettingsController', () => {
   describe('uploadAvatar', () => {
     it('should update the user avatar', async () => {
       const user = userFixture({
-        avatarId: 2,
-        avatar: { id: 2, url: '', key: 'old-avatar-key' },
+        avatarId: '2',
+        avatar: {
+          id: '2',
+          url: '',
+          key: 'old-avatar-key',
+          mimetype: '',
+          filename: '',
+          isLocal: true,
+          path: '',
+        },
       });
       const file = {
         filename: 'avatar.png',
         buffer: Buffer.from('avatar'),
       } as Express.Multer.File;
 
-      await settingsController.uploadAvatar(file, user);
+      await settingsController.uploadAvatar([file], user);
 
       expect(settingsService.updateAvatar).toHaveBeenCalledWith(user, {
         filename: file.filename,
@@ -158,8 +168,16 @@ describe('SettingsController', () => {
   describe('removeAvatar', () => {
     it('should remove the user avatar', async () => {
       const user = userFixture({
-        avatarId: 2,
-        avatar: { id: 2, url: '', key: 'old-avatar-key' },
+        avatarId: '2',
+        avatar: {
+          id: '2',
+          url: '',
+          key: 'old-avatar-key',
+          mimetype: '',
+          filename: '',
+          isLocal: true,
+          path: '',
+        },
       });
 
       await settingsController.removeAvatar(user);

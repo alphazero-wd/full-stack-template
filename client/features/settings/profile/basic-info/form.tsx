@@ -47,19 +47,15 @@ export const BasicInfoForm = ({ name }: BasicInfoFormProps) => {
 
         <div className="flex gap-x-4">
           <Button
+            disabled={loading}
             variant="outline"
             type="button"
-            disabled={loading || form.getValues("name") === name}
             className="w-fit"
             onClick={cancelChanges}
           >
             Reset
           </Button>
-          <Button
-            className="w-fit gap-x-2"
-            type="submit"
-            disabled={loading || form.getValues("name") === name}
-          >
+          <Button disabled={loading} className="w-fit gap-x-2" type="submit">
             {loading && <Spinner />} {loading ? "Updating..." : "Update"}
           </Button>
         </div>

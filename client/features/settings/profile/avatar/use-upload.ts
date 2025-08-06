@@ -6,9 +6,11 @@ import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { deleteAvatar } from "./delete-avatar";
 import { uploadAvatar } from "./upload-avatar";
+import { useRouter } from "next/navigation";
 
 export const useUploadImage = (avatar: Avatar | null) => {
   const { toast } = useToast();
+  const router = useRouter();
   const [newImage, setNewImage] = useState<FileWithPreview | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +37,8 @@ export const useUploadImage = (avatar: Avatar | null) => {
         variant: "success",
         title: "Avatar updated successfully",
       });
+      clearPreviewImage();
+      router.refresh();
     } catch (error: any) {
       const message = isAxiosError(error)
         ? error.response?.data.message

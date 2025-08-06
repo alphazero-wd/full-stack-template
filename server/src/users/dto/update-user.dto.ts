@@ -5,5 +5,5 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   newEmail?: string | null;
   oldEmailToken?: string | null;
   newEmailToken?: string | null;
-  avatarId?: number;
+  avatarId?: string;
 }

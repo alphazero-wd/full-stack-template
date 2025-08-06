@@ -2,10 +2,10 @@ import { Module } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { SettingsController } from './settings.controller';
 import { UsersModule } from '../users/users.module';
-import { StorageModule } from '../storage/storage.module';
+import { FilesModule } from '../files/files.module';
 
 @Module({
-  imports: [UsersModule, StorageModule],
+  imports: [UsersModule, FilesModule],
   controllers: [SettingsController],
   providers: [SettingsService],
 })

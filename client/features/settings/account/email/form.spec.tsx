@@ -48,6 +48,15 @@ describe("validation is not successful", () => {
     );
     expect(emailErrorMessage).toBeInTheDocument();
   });
+  it("should show an error if name hasn't changed", async () => {
+    render(<EmailInputForm email={VALID_EMAIL} />);
+    const updateEmailButton = screen.getByRole("button", { name: /update/i });
+    await userEvent.click(updateEmailButton);
+    const emailErrorMessage = await screen.findByText(
+      /no changes made to your email/i
+    );
+    expect(emailErrorMessage).toBeInTheDocument();
+  });
 });
 
 describe("validation is successful", () => {
